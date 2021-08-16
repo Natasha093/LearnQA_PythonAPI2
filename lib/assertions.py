@@ -1,25 +1,29 @@
+import allure
 from requests import Response
 import json
+
 
 class Assertions:
     @staticmethod
     def assert_json_value_by_name(response: Response, name, expected_value, error_message):
-        try:
-            response_as_dict =  response.json()
-        except json.decoder.JSONDecodeError:
-            assert False, f"Response is not in JSON format. Response text is '{response.text}'"
+        with allure.step(f"Assert json value by name '{name}'"):
+            try:
+                response_as_dict = response.json()
+            except json.decoder.JSONDecodeError:
+                assert False, f"Response is not in JSON format. Response text is '{response.text}'"
 
-        assert name in response_as_dict, f"Response JSON doesnt have key '{name}'"
-        assert response_as_dict[name] == expected_value, error_message
+            assert name in response_as_dict, f"Response JSON doesnt have key '{name}'"
+            assert response_as_dict[name] == expected_value, error_message
 
     @staticmethod
     def assert_json_has_key(response: Response, name):
-        try:
-            response_as_dict = response.json()
-        except json.decoder.JSONDecodeError:
-            assert False, f"Response is not in JSON format. Response text is '{response.text}'"
+        with allure.step(f"Assert json has key '{name}'"):
+            try:
+                response_as_dict = response.json()
+            except json.decoder.JSONDecodeError:
+                assert False, f"Response is not in JSON format. Response text is '{response.text}'"
 
-        assert name in response_as_dict, f"Response JSON doesnt have key '{name}'"
+            assert name in response_as_dict, f"Response JSON doesnt have key '{name}'"
 
     @staticmethod
     def assert_code_status(response: Response, expected_status_code):
