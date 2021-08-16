@@ -1,14 +1,14 @@
 import pytest
-import requests
 from lib.base_case import BaseCase
 from lib.assertions import Assertions
+from lib.my_requests import MyRequests
 
 
 class TestUserRegister(BaseCase):
     def test_create_user_successfully(self):
         data = self.prepare_registration_data()
 
-        response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+        response = MyRequests.post("/user/", data=data)
         Assertions.assert_code_status(response, 200)
         Assertions.assert_json_has_key(response, "id")
 
@@ -16,7 +16,7 @@ class TestUserRegister(BaseCase):
         email = 'vinkotov@example.com'
         data = self.prepare_registration_data(email)
 
-        response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+        response = MyRequests.post("/user/", data=data)
 
         Assertions.assert_code_status(response, 400)
         assert response.content.decode(
@@ -24,15 +24,9 @@ class TestUserRegister(BaseCase):
 
     def test_create_user_without_req_symbol(self):
         email = 'userexample.com'
-        data = {
-            'password': '1234',
-            'username': 'learnqa',
-            'firstName': 'learnqa',
-            'lastName': 'learnqa',
-            'email': email
-        }
+        data = self.prepare_registration_data(email)
 
-        response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+        response = MyRequests.post("/user/", data=data)
         Assertions.assert_code_status(response, 400)
         assert response.content.decode("utf-8") == f"Invalid email format"
 
@@ -66,31 +60,34 @@ class TestUserRegister(BaseCase):
 
     @pytest.mark.parametrize("data, answer", incomplete_dataset)
     def test_create_user_without_any_req_field(self, data, answer):
-        response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+        response = MyRequests.post("/user/", data=data)
         Assertions.assert_code_status(response, 400)
         assert response.content.decode("utf-8") == f"The following required params are missed: {answer}"
 
     def test_create_user_with_one_symbol_username(self):
-
+        data = self.prepare_registration_data()
+        email = data.get("email")
         data = {
             'password': '1234',
             'username': 'learnqa',
             'firstName': 'a',
             'lastName': 'learnqa',
-            'email': self.email
+            'email': email
         }
-        response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+        response = MyRequests.post("/user/", data=data)
         Assertions.assert_code_status(response, 400)
         assert response.content.decode("utf-8") == f"The value of 'firstName' field is too short"
 
     def test_create_user_with_very_long_username(self):
+        data = self.prepare_registration_data()
+        email = data.get("email")
         data = {
             'password': '1234',
             'username': 'learnqa',
             'firstName': 'a' * 251,
             'lastName': 'learnqa',
-            'email': self.email
+            'email': email
         }
-        response = requests.post("https://playground.learnqa.ru/api/user", data=data)
+        response = MyRequests.post("/user", data=data)
         Assertions.assert_code_status(response, 400)
         assert response.content.decode("utf-8") == f"The value of 'firstName' field is too long"
